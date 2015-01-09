@@ -25,7 +25,7 @@ for file in *.f*a; do
 			echo "File ${file}_mapped_Gorila+YY exists.";
 		else
 			echo "File ${file}_mapped_Gorila+YY does not exist. Blasr will be used to map contigs to Gorilla+YY";
-			blasr -bestn 1 -nproc 16 -minPctIdentity 90 -m 4 -sa ${path_to_reference}.sa $file $path_to_reference >${file}_mapped_Gorila+YY;
+			blasr -bestn 1 -nproc 16 -minPctIdentity 85 -m 4 -sa ${path_to_reference}.sa $file $path_to_reference >${file}_mapped_Gorila+YY;
 		fi
 
 		#create contamination file - contigs with best autosomal hit
