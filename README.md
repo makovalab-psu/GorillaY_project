@@ -1,29 +1,11 @@
 # README #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+This README describes scripts accompanying Gorilla Y chromosome assembly paper.
 
 ### What is this repository for? ###
 
-* Scripts accompanying Gorilla Y chromosome assembly paper
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
-
-### How do I get set up? ###
-
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
-
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
+This repository was set up to enhance transparency and reproducibility of our analysis.
 
 ### Who do I talk to? ###
 
-* Repo owner or admin
-* Other community or team contact
+* contact biomonika@psu.edu or any of the repository administrators
