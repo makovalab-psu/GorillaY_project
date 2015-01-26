@@ -23,7 +23,29 @@ handle.close()
 fasta_output = open(palindrome_output,"w")
 stat_output = open(statistics_output,"w")
 
-#check if blast output exists or needs to be created
+#BLASR output
+def writeToBlasrFile():
+    command = "blasr -bestn 2 -nproc 60 -m 4 -out BLASRfemale_aligned.txt -unaligned BLASRfemale_unaligned.txt " + palindrome_output + " /galaxy/home/biomonika/data/ref_gorilla/Gorilla_gorilla.gorGor3.1.74.dna.toplevel.fa -sa /galaxy/home/biomonika/data/ref_gorilla/gorGor3.sa"
+    #command = "blasr -bestn 2 -nproc 60 -m 4 " + palindrome_output + " /galaxy/home/biomonika/data/ref_gorilla/Gorilla_gorilla.gorGor3.1.74.dna.toplevel.fa >" + BLASRfemale_aligned.txt
+    print command
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=None, shell=True) 
+    process.communicate()[0] #Launch shell command
+
+def prepareBlasrOutput():
+    if (os.path.isfile('BLASRfemale_aligned.txt') and os.path.getsize('BLASRfemale_aligned.txt') > 0): #blast file exists and is not empty
+        with open('BLASRfemale_aligned.txt', 'r') as content_file:
+            BlasrFile = content_file.read()
+            if 'ERROR' in BlasrFile:
+                content_file.close()
+                writeToBlasrFile()
+            else:
+                print ("blasr mapping to female exists, blasr won't be run: " + "BLASRfemale_aligned.txt")
+    else: 
+        print ("blasr mapping DOES NOT exist. Blasr will be run: " + "BLASRfemale_aligned.txt")
+        writeToBlasrFile()
+
+
+#BLAST output
 #blastn seq versus seq.r to identify inverted repeat, hence potential palindromes
 blast_file=(assembly_name+"__palindromes_defWordSize.txt")
 if (os.path.isfile(blast_file) and os.path.getsize(blast_file) > 0): #blast file exists and is not empty
@@ -58,17 +80,6 @@ command = "cat " + blast_file + " | grep -v \"#\" | awk '{if ($1==$2) print;}' |
 process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=None, shell=True) 
 process.communicate()[0] #Launch shell command
 
-blasr_female_palindrome_output=(assembly_file + "_assemblyNewPalindromesBLASRfemale.txt")
-if (os.path.isfile(blasr_female_palindrome_output) and os.path.getsize(blasr_female_palindrome_output) > 0): #blast file exists and is not empty
-    print ("blasr mapping to female exists, blasr won't be run:" + blasr_female_palindrome_output)
-else:
-    command = "blasr -bestn 2 -nproc 30 -m 4 " + palindrome_output + " -sa /galaxy/home/biomonika/data/ref_gorilla/Gorilla_gorilla.gorGor3.1.74.dna.toplevel.fa >" + blasr_female_palindrome_output
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=None, shell=True) 
-    process.communicate()[0] #Launch shell command
-
-with open(blasr_female_palindrome_output, 'r') as content_file:
-    BlasrFile = content_file.read()
-
 def getBestBlastHit(scaf_name):
     if (os.path.isfile(bestHitfileparsed) and os.path.getsize(bestHitfileparsed) > 0): #RM file exists and is not empty
         with open(bestHitfileparsed,"r") as BH_file:
@@ -86,7 +97,7 @@ def getBestBlastHit(scaf_name):
 
 def getRMscore(scaf_name):
     if (os.path.isfile(RMparsed) and os.path.getsize(RMparsed) > 0): #RM file exists and is not empty
-        with open(RMparsed, 'r') as RM_file:
+        with open(RMparsed, 'r+') as RM_file:
             RM = RM_file.read()
             for line in RM.splitlines():
                 #print line
@@ -99,25 +110,28 @@ def getHitAndLOA(scaf_name):
     ret1=[0,0,0,0]
     ret2=[0,0,0,0]
 
-    for line in BlasrFile.splitlines():
-        if scaf_name in line:
-            array=line.split(' ')
-            l=(float(array[6])-float(array[5]))/(float(array[7])) #length of alignment
-            length=int(round(l*100))
+    with open('BLASRfemale_aligned.txt', 'a+') as content_file:
+        BlasrFile = content_file.read()
 
-            if (hit==0):
-                #first hit found
-                ret1=[array[1],length,array[9],array[10]]  
-                #print (scaf_name + " FOUND IN " + line)
-                #print ("HIT: " + array[1] + " L: " + str(length) + " FEMALE_POS: " + array[9] + " " + array[10] )
+        for line in BlasrFile.splitlines():
+            if scaf_name in line:
+                array=line.split(' ')
+                l=(float(array[6])-float(array[5]))/(float(array[7])) #length of alignment
+                length=int(round(l*100))
 
-            if (hit==1):
-                #second hit found
-                ret2=[array[1],length,array[9],array[10]] #chrname,%length_of_alignment,female_start,female_end
-                #print (scaf_name + " FOUND IN " + line)
-                #print ("HIT: " + array[1] + " L: " + str(length) + " FEMALE_POS: " + array[9] + " " + array[10] )
-            hit+=1
-    return [ret1,ret2]
+                if (hit==0):
+                    #first hit found
+                    ret1=[array[1],length,array[9],array[10]]  
+                    #print (scaf_name + " FOUND IN " + line)
+                    #print ("HIT: " + array[1] + " L: " + str(length) + " FEMALE_POS: " + array[9] + " " + array[10] )
+
+                if (hit==1):
+                    #second hit found
+                    ret2=[array[1],length,array[9],array[10]] #chrname,%length_of_alignment,female_start,female_end
+                    #print (scaf_name + " FOUND IN " + line)
+                    #print ("HIT: " + array[1] + " L: " + str(length) + " FEMALE_POS: " + array[9] + " " + array[10] )
+                hit+=1
+        return [ret1,ret2]
 
 def getDistInFemale(first, second):
     hitIndexi=[0,1] #we are interested in two best hits to female genome
@@ -207,7 +221,7 @@ def getInfoForBlastPair(previous_line,line,identity):
     first_flanking_end=prev_start-1
     first_flanking_start=first_flanking_end-299
     first_flanking_start=max(first_flanking_start,1) #maybe it's end of scaffold and therefore no flanking sequence can be extracted
-    first_flanking_end=max(first_flanking_end,0) #maybe it's end of scaffold and therefore no flanking sequence can be extracted
+    first_flanking_end=max(first_flanking_end,1) #maybe it's end of scaffold and therefore no flanking sequence can be extracted
 
     second_flanking_start=end+1
     second_flanking_end=second_flanking_start+299 #if out of the range, won't be extracted with faidx [todo:fix, read sequences to dictionary and get length]
@@ -289,6 +303,9 @@ with open(blast_file_parsed, "r") as f:
 
 fasta_output.close()
 stat_output.close()
+
+#run Blasr if not ready by now
+prepareBlasrOutput()
 
 print "NOW RUN RepeatMasker -species Primates -x " + palindrome_output + " and copy " + palindrome_output + ".masked to the actual folder.";
 print "BLAST " + palindrome_output + " with nucleotide blast and download xml file. Name it blast.xml and move to the actual folder."
