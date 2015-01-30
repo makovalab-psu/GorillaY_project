@@ -7,6 +7,9 @@ import os
 import re
 import subprocess
 from Bio import SeqIO
+from collections import defaultdict
+
+SAMdict = defaultdict(list)
 
 class GeneMappings:
     """Class that for every gene stores where it maps"""
@@ -20,24 +23,20 @@ class GeneMappings:
         self.flagstat = flagstat
         self.mapping_positions = mapping_positions
 
-def getMappingsForGene(gene): 
-    command = "cat " + sam_file + " | grep -v \"@\" | grep \"" + gene + "\" | cut -f3 "
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=None, shell=True)
-    #Launch shell command:
-    gene_mappings = process.communicate()[0]
-
-    command2 = "cat " + sam_file + " | grep -v \"@\" | grep \"" + gene + "\" | cut -f2 | awk '{s+=$1} END {print s}'"
-    process2 = subprocess.Popen(command2, stdout=subprocess.PIPE, stderr=None, shell=True)
-    #Launch shell command:    
-    cumulative_flag_score = process2.communicate()[0]
-
-    command3 = "cat " + sam_file + " | grep -v \"@\" | grep \"" + gene + "\" | cut -f4 "
-    process3 = subprocess.Popen(command3, stdout=subprocess.PIPE, stderr=None, shell=True)
-    #Launch shell command:    
-    mapping_positions = process3.communicate()[0]
-
-    return (gene_mappings + "#" + cumulative_flag_score + "#" + mapping_positions)
-    #return command
+def parseSAM(file):
+    for line in open(file):
+        li=line.strip()
+        if not li.startswith("@SQ"):
+            SAMline=line.rstrip()
+            #print SAMline
+            fields=SAMline.split()
+            gene=fields[0]
+            flag=fields[1]
+            mappings=fields[2]
+            pos=fields[3]
+            array=[flag,mappings,pos]
+            SAMdict[gene].append(array)
+            print ("GENE: " + gene + " FLAG: " + flag + " MAPPINGS: " + mappings + " POS: " + pos)
 
 gene_file = sys.argv[1]
 sam_file = sys.argv[2]
@@ -61,6 +60,8 @@ handle = open(assembly_file, "rU")
 record_assembly = SeqIO.to_dict(SeqIO.parse(handle, "fasta"))
 handle.close()
 
+parseSAM(sam_file)
+print SAMdict
 
 #for every gene in order of humanY
 with open(gene_file, "r") as outer:
@@ -73,12 +74,13 @@ with open(gene_file, "r") as outer:
             gene=array[4]
             gene=gene.rstrip('\n')
 
-            gene_array=getMappingsForGene(gene)
-            gene_array=gene_array.replace('\n', ';')
-            #divide into mappings and flagstat
-            gene_array=gene_array.split('#')
+            #gene_array=getMappingsForGene(gene)
+            #SAM_array contains FLAG MAPPING POS
+            #print SAMdict[gene]
+            SAM_array=(SAMdict[gene])[0]
 
-            geneOuter=GeneMappings(name=gene, start=int(array[1]), end=int(array[2]), orientation=int(array[3]), mappings=gene_array[0], number_of_mappings=gene_array[0].count(';'), flagstat=int(gene_array[1].replace(';', '')), mapping_positions=gene_array[2].replace(';', ''))
+            #upload only first mapping, but update the information about number of mappings available
+            geneOuter=GeneMappings(name=gene, start=int(array[1]), end=int(array[2]), orientation=int(array[3]), mappings=SAM_array[1], number_of_mappings=len(SAMdict[gene]), flagstat=int(SAM_array[0]), mapping_positions=SAM_array[2])
 
 
             with open(gene_file, "r") as inner:
@@ -87,15 +89,17 @@ with open(gene_file, "r") as outer:
                     gene=array[4]
                     gene=gene.rstrip('\n')
 
-                    gene_array=getMappingsForGene(gene)
-                    gene_array=gene_array.replace('\n', ';')
-                    #divide into mappings and flagstat
-                    gene_array=gene_array.split('#')
-                    geneInner=GeneMappings(name=gene, start=int(array[1]), end=int(array[2]), orientation=int(array[3]), mappings=gene_array[0], number_of_mappings=gene_array[0].count(';'), flagstat=int(gene_array[1].replace(';', '')), mapping_positions=gene_array[2].replace(';', ''))
+                    #gene_array=getMappingsForGene(gene)
+                    #SAM_array contains FLAG MAPPING POS
+                    #print SAMdict[gene]
+                    SAM_array=(SAMdict[gene])[0]
+
+                    #upload only first mapping, but update the information about number of mappings available
+                    geneInner=GeneMappings(name=gene, start=int(array[1]), end=int(array[2]), orientation=int(array[3]), mappings=SAM_array[1], number_of_mappings=len(SAMdict[gene]), flagstat=int(SAM_array[0]), mapping_positions=SAM_array[2])
 
                     #look up contigs in fasta 
-                    outer_contig=geneOuter.mappings.replace(';', '');
-                    inner_contig=geneInner.mappings.replace(';', '');
+                    outer_contig=geneOuter.mappings
+                    inner_contig=geneInner.mappings
 
                     if (geneOuter.number_of_mappings + geneInner.number_of_mappings == 2 ) and (geneOuter.mappings != geneInner.mappings) and (outer_contig != "*") and (inner_contig != "*") and (geneOuter.end <= geneInner.start):
 
@@ -112,12 +116,16 @@ with open(gene_file, "r") as outer:
                         length_of_outer_contig=int(len(outer_record.seq))
                         length_of_inner_contig=int(len(inner_record.seq))
 
+                        print ("length_of_outer_contig: " + str(length_of_outer_contig) + " length_of_inner_contig: " + str(length_of_inner_contig))
+
+
                         PCRdistanceBetweenGenes=geneInner.start - geneOuter.end #this distance is over-estimation of real distance, we need to subtract distances of the genes to the end of contigs
                         print ("gene distance estimate: " + str(PCRdistanceBetweenGenes))
 
                         if (PCRdistanceBetweenGenes>500000):
                             print ("current gene too distant from outer gene, trying new outer gene; break;")
                             break;
+                            print ("-----------------------------------------------------------------------")
 
                         #subtract distance of geneA to the end of contig
                         distance_to_the_end_of_first_contig=(length_of_outer_contig-int(geneOuter.mapping_positions))
@@ -154,7 +162,7 @@ with open(gene_file, "r") as outer:
                                     outer_record.seq=(outer_record.seq).reverse_complement()
                                     print "reverse complementing outer gene"
                                 if (geneInner.flagstat==16):
-                                    record.seq=(inner_record.seq).reverse_complement()
+                                    inner_record.seq=(inner_record.seq).reverse_complement()
                                     print "reverse complementing gene"
 
                             if ((geneOuter.orientation==-1) and (geneInner.orientation==-1)):
@@ -165,7 +173,7 @@ with open(gene_file, "r") as outer:
                                     outer_record.seq=(outer_record.seq).reverse_complement()
                                     print "reverse complementing outer gene"
                                 if (geneInner.flagstat==0):
-                                    record.seq=(inner_record.seq).reverse_complement()
+                                    inner_record.seq=(inner_record.seq).reverse_complement()
                                     print "reverse complementing gene"
 
                             if ((geneOuter.orientation==1) and (geneInner.orientation==-1)):
@@ -175,7 +183,7 @@ with open(gene_file, "r") as outer:
                                     outer_record.seq=(outer_record.seq).reverse_complement()
                                     print "reverse complementing outer gene"
                                 if (geneInner.flagstat==0):
-                                    record.seq=(inner_record.seq).reverse_complement()
+                                    inner_record.seq=(inner_record.seq).reverse_complement()
                                     print "reverse complementing gene"
 
                             if ((geneOuter.orientation==-1) and (geneInner.orientation==1)):
@@ -185,7 +193,7 @@ with open(gene_file, "r") as outer:
                                 if (geneOuter.flagstat==0):
                                     outer_record.seq=(outer_record.seq).reverse_complement()
                                 if (geneInner.flagstat==16):
-                                    record.seq=(inner_record.seq).reverse_complement()
+                                    inner_record.seq=(inner_record.seq).reverse_complement()
 
                             #retrieve updated sequences
                             outer_fasta=("\n>" + outer_record.id + "\n" + outer_record.seq)
