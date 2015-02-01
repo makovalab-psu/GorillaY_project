@@ -13,7 +13,7 @@ SAMdict = defaultdict(list)
 
 class GeneMappings:
     """Class that for every gene stores where it maps"""
-    def __init__(self, name, start, end, orientation, mappings, number_of_mappings, flagstat, mapping_positions):
+    def __init__(self, name, start, end, orientation, mappings, number_of_mappings, flagstat, mapping_positions,length):
         self.name = name
         self.start = start
         self.end = end
@@ -22,6 +22,7 @@ class GeneMappings:
         self.number_of_mappings=number_of_mappings
         self.flagstat = flagstat
         self.mapping_positions = mapping_positions
+        self.length = length
 
 def parseSAM(file):
     for line in open(file):
@@ -80,7 +81,8 @@ with open(gene_file, "r") as outer:
             SAM_array=(SAMdict[gene])[0]
 
             #upload only first mapping, but update the information about number of mappings available
-            geneOuter=GeneMappings(name=gene, start=int(array[1]), end=int(array[2]), orientation=int(array[3]), mappings=SAM_array[1], number_of_mappings=len(SAMdict[gene]), flagstat=int(SAM_array[0]), mapping_positions=SAM_array[2])
+            l=int(array[2])-int(array[1])+1
+            geneOuter=GeneMappings(name=gene, start=int(array[1]), end=int(array[2]), orientation=int(array[3]), mappings=SAM_array[1], number_of_mappings=len(SAMdict[gene]), flagstat=int(SAM_array[0]), mapping_positions=SAM_array[2], length=l)
 
 
             with open(gene_file, "r") as inner:
@@ -95,7 +97,8 @@ with open(gene_file, "r") as outer:
                     SAM_array=(SAMdict[gene])[0]
 
                     #upload only first mapping, but update the information about number of mappings available
-                    geneInner=GeneMappings(name=gene, start=int(array[1]), end=int(array[2]), orientation=int(array[3]), mappings=SAM_array[1], number_of_mappings=len(SAMdict[gene]), flagstat=int(SAM_array[0]), mapping_positions=SAM_array[2])
+                    l=int(array[2])-int(array[1])+1
+                    geneInner=GeneMappings(name=gene, start=int(array[1]), end=int(array[2]), orientation=int(array[3]), mappings=SAM_array[1], number_of_mappings=len(SAMdict[gene]), flagstat=int(SAM_array[0]), mapping_positions=SAM_array[2], length=l)
 
                     #look up contigs in fasta 
                     outer_contig=geneOuter.mappings
@@ -128,7 +131,7 @@ with open(gene_file, "r") as outer:
                             print ("-----------------------------------------------------------------------")
 
                         #subtract distance of geneA to the end of contig
-                        distance_to_the_end_of_first_contig=(length_of_outer_contig-int(geneOuter.mapping_positions))
+                        distance_to_the_end_of_first_contig=(length_of_outer_contig-int(geneOuter.mapping_positions)+int(geneOuter.length))
                         PCRdistanceEstimate=PCRdistanceBetweenGenes-distance_to_the_end_of_first_contig
 
                         #substract distance of geneB to the beginning of contig
@@ -199,7 +202,7 @@ with open(gene_file, "r") as outer:
                             outer_fasta=("\n>" + outer_record.id + "\n" + outer_record.seq)
                             inner_fasta=("\n>" + inner_record.id + "\n" + inner_record.seq)
 
-                            candidate_report="\nCANDIDATE " + geneOuter.name + " maps to " + geneOuter.mappings + " " + geneInner.name + " maps to " + geneInner.mappings + " distance_between_genes is: " + str(PCRdistanceBetweenGenes) + "; PCR product size is: " + str(PCRdistanceEstimate) + "; distance_from_gene_to_end_of_first_contig: " + str(distance_to_the_end_of_first_contig) + " distance_to_start_of_gene_at_second_contig: " + str(distance_to_the_start_of_gene_at_second_contig) + "; length_of_first_contig: " + str(length_of_outer_contig) + "; length_of_second_contig: " + str(length_of_inner_contig) + "; human_orientation: "  + human_orientation;
+                            candidate_report="\nCANDIDATE " + geneOuter.name + " maps to " + geneOuter.mappings + " at " + geneOuter.mapping_positions + "bp AND " + geneInner.name + " maps to " + geneInner.mappings + " at " + geneInner.mapping_positions + "bp; distance_between_genes is: " + str(PCRdistanceBetweenGenes) + "; PCR product size is: " + str(PCRdistanceEstimate) + "; distance_from_gene_to_end_of_first_contig: " + str(distance_to_the_end_of_first_contig) + " distance_to_start_of_gene_at_second_contig: " + str(distance_to_the_start_of_gene_at_second_contig) + "; length_of_first_contig: " + str(length_of_outer_contig) + "; length_of_second_contig: " + str(length_of_inner_contig) + " first_gene_length: " + str(geneOuter.length) + " second_gene_length: " + str(geneInner.length) + " ; human_orientation: "  + human_orientation;
                             
                             print candidate_report; 
                             toWalk.write(str(candidate_report) + str(outer_fasta) + str(inner_fasta))
