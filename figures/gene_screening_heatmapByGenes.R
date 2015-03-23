@@ -63,14 +63,16 @@ mycol<-colorRampPalette(c("red","purple","darkblue"))(10)
 outputfile=paste('figures/','heatmapByGenes_',file_label,'.pdf',sep = "");
 pdf(outputfile, height=12, width=12)
 data_heatmap <- heatmap.2(data_matrix_genes, Rowv=NA, Colv=NA, col=mycol, scale="none", 
-                          notecol="black", key=FALSE, trace="none", tracecol="black",
+                          key=FALSE, trace="none", tracecol="black",
                           dendrogram="none", lhei=c(1,12), cexRow=1, cexCol=1,
                           margins = c(12, 8), offsetCol = 0.01, main = file_label, 
                           sepwidth=c(0.00001,0.00001),
                           sepcolor="white",
                           colsep=1:ncol(data_matrix_genes),
                           rowsep=1:nrow(data_matrix_genes),
-                          breaks=c(0,10,20,30,40,50,60,70,80,90,100)
+                          breaks=c(0,10,20,30,40,50,60,70,80,90,100),
+                          cellnote=data_complete,
+                          notecol="white"
                           )
 
 dev.off()
