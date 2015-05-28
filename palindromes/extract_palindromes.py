@@ -69,7 +69,7 @@ else:
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=None, shell=True) 
         process.communicate()[0] #Launch shell command
 
-    command="blastn -num_threads 30 -db " + assembly_name + " -query " + query + " -outfmt 7 -dust no -perc_identity 95 -strand plus | sort -gk1 >" + blast_file
+    command="blastn -num_threads 60 -db " + assembly_name + " -query " + query + " -outfmt 7 -dust no -perc_identity 95 -strand plus | awk '{if ($4>=3000) print;}' | sort -gk1 >" + blast_file
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=None, shell=True) 
     process.communicate()[0] #Launch shell command
 
