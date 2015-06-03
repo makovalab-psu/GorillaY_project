@@ -1,0 +1,243 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+<<load data>>=
+library(bestglm)
+library(boot)
+library("e1071")
+options(scipen=10)
+
+setwd("/Users/alice/Desktop/projects/amplic_vs_deg")
+amplTable = read.table("tableAMPL", sep="\t", header=TRUE)
+degTable = read.table("tableDEG", sep="\t", header=TRUE)
+assTable = read.table("tableHYB", sep="\t", header=TRUE)
+
+amplTable<-as.data.frame.matrix(amplTable)
+degTable<-as.data.frame.matrix(degTable)
+assTable<-as.data.frame.matrix(assTable)
+
+set.seed(11)
+#subsample to match number of ampliconic entries
+#degTable<-degTable[sample(nrow(amplTable)),]
+
+table=rbind(amplTable,degTable)
+table=as.data.frame(table)
+
+
+#DEGENERATE~1, AMPLICONIC~0
+Y.binary <- table[,ncol(table)]
+Y.binary[Y.binary=="DEG"]=1
+Y.binary[Y.binary=="AMPL"]=0
+table[,NCOL(table)]<-Y.binary
+
+#TRAINING AND TEST DATA SET
+X <- table[,2:(ncol(table)-1)]
+Y <- table[,ncol(table)]
+#test=NULL
+#test = sample(nrow(data), round((nrow(data))/4))
+#train = c(1:nrow(table))
+#train <- train[-test]
+# create training data
+#Y.train = Y[-test]
+#X.train = X[-test,]
+# create test data
+#Y.test = Y[test]
+#X.test = X[test,]
+
+data <- cbind(X,Y)
+
+span <- data[,c("total_span","DNA_span","SINE_span","LINE_span","LTR_span","Simple_repeat_span","Low_complexity_span","Satellite_span","Y")] 
+counts <- data[,c("total_count","DNA_count","SINE_count","LINE_count","LTR_count","Simple_repeat_count","Low_complexity_count","Satellite_count","Y")] 
+
+span_excluded<-span[-exclude,]
+#log transformation
+log_span <- span
+log_span[,1:(NCOL(log_span)-1)]=log(log_span[,1:(NCOL(log_span)-1)]+0.0001)
+log_counts <- counts
+log_counts[,1:(NCOL(log_counts)-1)]=log(log_counts[,1:(NCOL(log_counts)-1)]+0.0001)
+@
+
+<<lda>>=
+library(MASS)
+library(psych)
+myvar<-data.frame(X)
+lda.fit=lda(Y~.,data=X[,1:15],CV=TRUE)
+tab <- table(Y, lda.fit$class)
+conCV1 <- rbind(tab[1, ]/sum(tab[1, ]), tab[2, ]/sum(tab[2, ]))
+dimnames(conCV1) <- list(Actual = c("No", "Yes"), "Predicted (cv)" = c("No","Yes"))
+print(round(conCV1, 3))
+@
+
+<<random_forest>>=
+library (randomForest)
+rf=randomForest(Y~.,data=span,mtry=4,importance=TRUE)
+importance(rf) #textual representation of how important the variables were
+varImpPlot(rf) #graphical representation
+@
+
+
+<<boxplots>>=
+par(mfrow=c(2,3))
+list_span <- c("total_span","DNA_span","SINE_span","LINE_span","LTR_span","Simple_repeat_span","Low_complexity_span","Satellite_span")
+list_counts <- c("total_count","DNA_count","SINE_count","LINE_count","LTR_count","Simple_repeat_count","Low_complexity_count","Satellite_count")
+
+subset=span
+for (i in 1:8) {
+  #darkgreen
+  type=list_span[i]
+  boxplot(subset[which(subset$Y=="0"),type],subset[which(subset$Y=="1"),type],range=2, varwidth=TRUE, col = "#04702F",names=c("AMPL","DEG"), main=list_span[i])
+}
+
+subset=log_span
+for (i in 1:8) {
+  #lightgreen
+  type=list_span[i]
+  boxplot(subset[which(subset$Y=="0"),type],subset[which(subset$Y=="1"),type],range=2, varwidth=TRUE, col = "#67D594",names=c("AMPL","DEG"), main=list_span[i])
+}
+
+
+subset=counts
+for (i in 1:8) {
+  #darkblue
+  type=list_counts[i]
+  boxplot(subset[which(subset$Y=="0"),type],subset[which(subset$Y=="1"),type],range=2, varwidth=TRUE, col = "#054662",names=c("AMPL","DEG"), main=list_counts[i])
+}
+
+subset=log_counts
+for (i in 1:8) {
+  #lightblue
+  type=list_counts[i]
+  boxplot(subset[which(subset$Y=="0"),type],subset[which(subset$Y=="1"),type],range=2, varwidth=TRUE, col = "#43A2CB",names=c("AMPL","DEG"), main=list_counts[i])
+}
+@
+
+<<scatterplots>>=
+par(mfrow=c(2,2))
+#ampliconic green, X-degenerate red
+plot(span[2:(NCOL(span)-1)], col=ifelse(span$Y==0,'green','red'),main="span")
+plot(log_span[2:(NCOL(log_span)-1)], col=ifelse(log_span$Y==0,'green','red'),main="log span")
+plot(counts[2:(NCOL(counts)-1)], col=ifelse(counts$Y==0,'green','red'), main="counts")
+plot(log_counts[2:(NCOL(log_counts)-1)], col=ifelse(log_counts$Y==0,'green','red'), main="log count")
+@
+
+<<best_subsets>>=
+#counts
+ModelCounts <-bestglm(counts,IC='AIC',TopModels=3, family=binomial)
+summary(ModelCounts$BestModels)
+summary(ModelCounts$BestModel)
+
+#span
+ModelSpan <-bestglm(span,IC='AIC',TopModels=3, family=binomial)
+summary(ModelSpan$BestModels)
+summary(ModelSpan$BestModel)
+
+#log counts
+ModelLogCounts <-bestglm(log_counts,IC='AIC',TopModels=3, family=binomial) #WARNING fitted probabilities numerically 0 or 1 occurred
+summary(ModelLogCounts$BestModels)
+summary(ModelLogCounts$BestModel)
+
+#log span
+ModelLogSpan <-bestglm(log_span,IC='AIC',TopModels=3, family=binomial) #WARNING fitted probabilities numerically 0 or 1 occurred
+summary(ModelLogSpan$BestModels)
+summary(ModelLogSpan$BestModel)
+@
+
+
+
+<<cross_validation_counts>>=
+cost <- function(r, pi = 0) mean(abs(r-pi) > 0.5)
+LogisticRegCounts <- glm(Y~DNA_count+SINE_count+LTR_count, family = binomial(), data = counts)
+
+hv <- as.data.frame(hatvalues(LogisticRegCounts))
+mn <-mean(hatvalues(LogisticRegCounts))
+hv$warn <- ifelse(hv[, 'hatvalues(LogisticRegCounts)']>3*mn, 'x3',
+   ifelse(hv[, 'hatvalues(LogisticRegCounts)']>2*mn, 'x3', '-' ))
+
+outliers_counts<-which(hv$warn=="x3")
+counts_excluded<-counts[-outliers_counts,]
+
+LogisticRegCounts <- glm(Y~DNA_count+SINE_count+LTR_count, family = binomial(), data = counts_excluded)
+
+#glm.diag.plots(LogisticRegCounts)
+summary(LogisticRegCounts)
+confint.default(LogisticRegCounts)
+
+#McFadden's R squared
+nullmod <- glm(Y~1, family="binomial", data = counts)
+1-logLik(LogisticRegCounts)/logLik(nullmod)
+
+#k=NROW(counts)
+#cv.err=cv.glm(data=counts,glmfit=LogisticRegCounts,cost,K=k)
+#Concordance(LogisticRegCounts) 
+k=NROW(counts_excluded)
+cv.err=cv.glm(data=counts_excluded,glmfit=LogisticRegCounts,cost,K=k)
+cv.err$delta
+@
+
+<<cross_validation_span>>=
+cost <- function(r, pi = 0) mean(abs(r-pi) > 0.5)
+LogisticRegSpan <- glm(Y~DNA_span+SINE_span+LTR_span, family = binomial(), data = span)
+
+hv <- as.data.frame(hatvalues(LogisticRegSpan))
+mn <-mean(hatvalues(LogisticRegSpan))
+hv$warn <- ifelse(hv[, 'hatvalues(LogisticRegSpan)']>3*mn, 'x3',
+   ifelse(hv[, 'hatvalues(LogisticRegSpan)']>2*mn, 'x3', '-' ))
+
+outliers_span<-which(hv$warn=="x3")
+span_excluded<-span[-outliers_span,]
+
+LogisticRegSpan <- glm(Y~DNA_span+SINE_span+LTR_span, family = binomial(), data = span_excluded)
+
+#glm.diag.plots(LogisticRegSpan,iden=FALSE)
+summary(LogisticRegSpan)
+confint.default(LogisticRegSpan)
+
+#McFadden's R squared
+nullmod <- glm(Y~1, family="binomial", data = span)
+1-logLik(LogisticRegSpan)/logLik(nullmod)
+
+#k=NROW(span)
+#cv.err=cv.glm(data=span,glmfit=LogisticRegSpan,cost,K=k)
+#Concordance(LogisticRegSpan) 
+k=NROW(span_excluded)
+cv.err=cv.glm(data=span_excluded,glmfit=LogisticRegSpan,cost,K=k)
+cv.err$delta
+@
+
+
+<<classify_assembly>>=
+par(mfrow=c(2,2))
+models<- c("LogisticRegCounts","LogisticRegSpan")
+results <- array(NA,c(4,2))
+
+for (i in 1:2) {
+  model=models[i]
+  LogisticProb <- predict(get(model), newdata = assTable, type="response")
+  plot(LogisticProb,col=ifelse(LogisticProb<=0.5,'green',ifelse(LogisticProb>0.5,'red','blue')),main=models[i])
+
+  LogisticPred <- rep("NULL", length(LogisticProb))
+  LogisticPred[LogisticProb<=0.5] = "AMPL"
+  LogisticPred[LogisticProb>0.5] = "DEG"
+  table(LogisticPred)
+  results[1,i]=models[i]
+  results[2,i]=table(LogisticPred)[1]
+  results[3,i]=table(LogisticPred)[2]
+  results[4,i]=table(LogisticPred)[3]
+  
+  classification<-cbind(assTable[,1],LogisticPred)
+  filename=paste(models[i],"_classification.txt",sep = "")
+  write.table(classification,file=filename,quote = FALSE,col.names=FALSE,row.names=FALSE)
+}
+
+results
+#predictions from last model
+
+#http://rforwork.info/2012/03/21/logistic-regression-in-r-concordance-and-discordance-testing/
+@
+
+
+
+
+\end{document}
