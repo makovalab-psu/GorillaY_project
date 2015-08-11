@@ -6,7 +6,7 @@ arguments are R1_reference_reads kmer_table_after_threshold R1_postrecY_reads_to
 import sys
 
 # User HAS TO set kmer_size and s1
-kmer_size = 25 
+kmer_size = 11 
 
 # The higher you set s1, the more strict it is going to be on autosomes 
 # but you will also lose some Y
@@ -21,7 +21,6 @@ surely_male_kmers = open(sys.argv[2],'r')
 classified_as_male_reads = open(sys.argv[3],'w')
 
 surely_male_kmers_set = set (line[:kmer_size] for line in surely_male_kmers)
-#print surely_male_kmers_set
 
 flag = 0
 save_readname = ['']
@@ -50,7 +49,7 @@ for line in input_all_types_reads :
 		save_read =['']
 		save_rest = ['']
 
-	elif line[0:4] != '@HIS' and flag == 1 :
+	elif line[0] != '@' and flag == 1 :
 		read_count += 1
 		start_index = 0
 		prospective_matches = 0 
@@ -69,7 +68,7 @@ for line in input_all_types_reads :
 			flag = 100
 		else :
 			flag = 0
-	elif line[0:4] != '@HIS' and flag==100 :
+	elif line[0:4] != '@' and flag==100 :
 		save_rest.append(line[:-1])
 	
 	

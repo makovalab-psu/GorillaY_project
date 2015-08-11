@@ -4,6 +4,9 @@ arguments are R1_postrecY_reads, R2_reference, R2_postrecY_reads_to_build
 '''
 import sys
 
+
+word_count_reference = 100
+
 pattern_file = open(sys.argv[1],'r')
 reference_file = open(sys.argv[2],'r')
 complement_file = open(sys.argv[3],'w')
@@ -32,12 +35,23 @@ for big_pat_line in pattern_file :
 		while found == 0 :
 			big_curr_ref_line = reference_file.readline()
 			small_curr_ref_line = big_curr_ref_line.split(' ')[0]
-			if small_curr_ref_line[0] == '@' :
+			#print curr_ref_line
+			#print curr_ref_line[0]
+			if small_curr_ref_line[0:4] == '@HIS' :
+			#if do == 1 :
+				#print small_pat_line
+				#print small_curr_ref_line
+				
 				if small_pat_line == small_curr_ref_line :
+					#print small_pat_line
+				 	#print small_curr_ref_line
+					#save 4 linesi
+					#print "match, yo!"
 					saved_record.append(big_curr_ref_line)
 					saved_record.append(reference_file.readline())
 					saved_record.append(reference_file.readline())
 					saved_record.append(reference_file.readline())
+					#print saved_record
 					is_first_time = 0
 					found = 1
 					tries+=1

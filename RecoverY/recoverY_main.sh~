@@ -38,10 +38,10 @@ Y_reference_table='./post_Threshold_reference_table'
 
 echo 'Pointing to all the right places, now classify a subset of R1 reads as Y-chr'
 
-python classify_as_Y_chr.py $R1_fsY_reads $Y_reference_table post_RecoverY/RecY_pairs.A.fastq
+python classify_as_Y_chr.py $R1_fsY_reads $Y_reference_table >> post_RecoverY/RecY_pairs.A.fastq
 
 echo 'Done with classify, now retrieve the mate for each read'
 
-python find_mates.py post_RecoverY/RecY_pairs.A.fastq $R2_fsY_reads post_RecoverY/RecY_pairs.B.fastq
+python find_mates.py post_RecoverY/RecY_pairs.A.fastq $R2_fsY_reads >> post_RecoverY/RecY_pairs.B.fastq
 
 echo 'Done with RecoverY'
