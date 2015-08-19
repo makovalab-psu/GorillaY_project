@@ -15,7 +15,7 @@ RecoverY has the following dependancies :
 bash version 2.0 or later
 python version 2.7 or later
 dsk version 2.0.2 or later
-
+Rscript version 2.15.1 or later
 
 
 EXAMPLE :

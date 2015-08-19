@@ -32,4 +32,4 @@ mv pre_Threshold_reference_table tables/
 head -1000 dsk_output/R1_dsk.histo > dsk_output/head1k_kmers
 
 
-
+Rscript plot_Threshold.R
