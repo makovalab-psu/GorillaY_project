@@ -74,7 +74,16 @@ rm -rf tables
 
 
 
-error : 
+error : ./rundsk.sh: line N: dsk: command not found
+	./rundsk.sh: line N+2: h5dump: command not found
+	./rundsk.sh: line N+4: dsk2ascii: command not found
+
+Please install dsk 2.0.2 or later : http://minia.genouest.org/dsk/
+
+
+
+
+
 
 
 Please e-mail szr165@psu.edu with questions or error reports
