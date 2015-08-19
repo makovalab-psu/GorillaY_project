@@ -58,24 +58,7 @@ Strictness set to 0.5 * length(read) works best in our tests
 
 TROUBLESHOOTING : 
 
-error : Insufficient arguments
-
 Typing the name of the bash script provides information on number and order of arguments 
-
-
-
-error : mkdir: cannot create directory `dsk_output': File exists
-	mkdir: cannot create directory `tables': File exists
-
-Remove these directories after backing them up if you need the data
-rm -rf dsk_output
-rm -rf tables
-
-
-
-
-error : 
-
 
 Please e-mail szr165@psu.edu with questions or error reports
 
