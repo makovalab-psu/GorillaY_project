@@ -4,7 +4,7 @@ INSTALL :
 
 To install RecoverY, clone the GorillaY_project directory with the following commands
 
-git clone https://github.com/makovalab-psu/GorillaY_project.git
+https://github.com/makovalab-psu/GorillaY_project.git
 cd GorillaY_project/RecoverY/
 
 
