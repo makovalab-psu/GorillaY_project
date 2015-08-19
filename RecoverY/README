@@ -53,7 +53,11 @@ cutoff = 0; gap.plot (head1k_kmers$V1, log(head1k_kmers$V2), gap.axis="y", gap =
 choose the THRESHOLD_VALUE by examining the plot
 
 
-3. Finally, run the main script with : 
+3. Finally, run the main script :
+
+FIRST, set k-mer size and strictness in py_scripts/classify_as_Y_chr.py 
+Strictness is in range (1,length(read))
+Strictness set to 0.5 * length(read) works best
 
 ./recoverY_main.sh READS_R1.FASTQ READS_R2.FASTQ PRE_THRESHOLD_REF_TBL THRESHOLD_VALUE
 
