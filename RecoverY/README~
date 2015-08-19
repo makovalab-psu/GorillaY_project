@@ -44,7 +44,7 @@ RUNTIME INSTRUCTIONS :
 
 2. Next, pick a THRESHOLD_VALUE based on the abundance peak of the k-mer histogram
 
-head -1000 dsk_output/R1_dsk.histo > dsk_output/head1k_kmers
+head -1000 dsk_output/R1_dsk.histo > tables/head1k_kmers
 
 cutoff = 0; gap.plot (head1k_kmers$V1, log(head1k_kmers$V2), gap.axis="y", gap = c(15.5,15.6), col="orange", ytics=c(1,3,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20), xtics=c(0,100,200,300,400,500,600,700,800,900,1000),ylab='Number of k-mers (ln)', xlab='Number of times a distinct k-mer occurs', ylim = c(1,20))
 
