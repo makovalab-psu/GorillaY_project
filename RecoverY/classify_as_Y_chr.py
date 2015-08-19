@@ -5,14 +5,14 @@ arguments are R1_reference_reads kmer_table_after_threshold R1_postrecY_reads_to
 
 import sys
 
-# User HAS TO set kmer_size and s1
+# User HAS TO set kmer_size and strictness
 kmer_size = 11 
 
-# The higher you set s1, the more strict it is going to be on autosomes 
+# The higher you set strictness, the more strict it is going to be on autosomes 
 # but you will also lose some Y
 # this is for 250bp reads
 
-s1 = 125
+strictness = 1
 
 
 
@@ -53,7 +53,7 @@ for line in input_all_types_reads :
 		read_count += 1
 		start_index = 0
 		prospective_matches = 0 
-		while (start_index < (len(line)-25)) :
+		while (start_index < (len(line)-kmer_size)) :
 			current_kmer = line[start_index:start_index+kmer_size]
 			#print current_kmer
 			if current_kmer in surely_male_kmers_set :
@@ -63,7 +63,7 @@ for line in input_all_types_reads :
 				prospective_matches += 1
 			start_index += 1
 
-		if prospective_matches > s1 :
+		if prospective_matches > strictness :
 			save_read = line[:-1]
 			flag = 100
 		else :
