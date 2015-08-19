@@ -1,0 +1,78 @@
+This is the README for RecoverY scripts
+
+INSTALL : 
+
+To install RecoverY, clone the GorillaY_project directory with the following commands
+
+https://github.com/makovalab-psu/GorillaY_project.git
+cd GorillaY_project/RecoverY/
+
+
+DEPENDANCIES :
+
+RecoverY has the following dependancies :
+
+bash version 2.0 or later
+python version 2.7 or later
+dsk version 2.0.2 or later
+
+
+
+EXAMPLE :
+
+To test if RecoverY works on your system, please run the following commands from the GorillaY_project/RecoverY/ folder:
+
+./rundsk.sh example_data/sample_R1.fastq
+
+./recoverY_main.sh example_data/sample_R1.fastq example_data/sample_R2.fastq tables/pre_Threshold_reference_table 1
+
+
+The first script generates the directory "dsk_output" and populates it with a .h5 and .histo file
+Additionally, it creates the directory "tables" which contains the file "pre_Threshold_reference_table"
+
+The second script generates the directory "post_RecoverY" and creates the R1 and R2 files which contain Y-specific read pairs
+Additionally, it creates the "post_Threshold_reference_table" file in the "tables" directory
+
+
+
+
+RUNTIME INSTRUCTIONS : 
+
+1. First create the k-mer table with :
+
+./rundsk.sh READS_R1.FASTQ
+
+
+
+2. Next, pick a THRESHOLD_VALUE based on the abundance peak of the k-mer histogram
+
+head -1000 tables/pre_Threshold_reference_table > tables/head1k_kmers
+
+cutoff = 0; gap.plot (head1k_kmers$V1, log(head1k_kmers$V2), gap.axis="y", gap = c(15.5,15.6), col="orange", ytics=c(1,3,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20), xtics=c(0,100,200,300,400,500,600,700,800,900,1000),ylab='Number of k-mers (ln)', xlab='Number of times a distinct k-mer occurs', ylim = c(1,20))
+
+choose the THRESHOLD_VALUE by examining the plot
+
+
+3. Finally, run the main script with : 
+
+./recoverY_main.sh READS_R1.FASTQ READS_R2.FASTQ PRE_THRESHOLD_REF_TBL THRESHOLD_VALUE
+
+
+
+TROUBLESHOOTING : 
+
+Typing the name of the bash script provides information on number and order of arguments 
+
+Please e-mail szr165@psu.edu with questions or error reports
+
+
+
+
+
+
+
+
+
+
+
+
