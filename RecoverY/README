@@ -22,11 +22,9 @@ EXAMPLE :
 
 To test if RecoverY works on your system, please run the following commands from the GorillaY_project/RecoverY/ folder:
 
-tar -xvzf flowsortedY_data.tar.gz
+./rundsk.sh flowsortedY_data/r1.fastq
 
-./rundsk.sh flowsortedY_data/sample_R1.fastq
-
-./recoverY_main.sh flowsortedY_data/sample_R1.fastq flowsortedY_data/sample_R2.fastq tables/pre_Threshold_reference_table 1
+./recoverY_main.sh flowsortedY_data/r1.fastq flowsortedY_data/r2.fastq tables/pre_Threshold_reference_table 1
 
 
 The first script generates the directory "dsk_output" and populates it with a .h5 and .histo file. Additionally, it creates the directory "tables" which contains the file "pre_Threshold_reference_table". Finally, it generates the k-mer abundance plot "myplot.jpg". 
@@ -51,7 +49,6 @@ Next, pick a THRESHOLD_VALUE based on the abundance peak of the k-mer plot
 
 FIRST, set k-mer size and strictness in py_scripts/classify_as_Y_chr.py 
 Strictness is in range (1,length(read))
-Strictness set to 0.5 * length(read) works best in our tests
 
 
 ./recoverY_main.sh READS_R1.FASTQ READS_R2.FASTQ PRE_THRESHOLD_REF_TBL THRESHOLD_VALUE
@@ -61,8 +58,10 @@ Strictness set to 0.5 * length(read) works best in our tests
 THINGS TO NOTE :
 
 - on re-running, these scripts over-write output from previous runs. Please backup your data from previous rundsk and recovery_main runs if needed
+
 - the setting for k-mer size needs to be consistent across dsk and recoverY. Current default is 25. Any modifications made in the rundsk.sh file to kmer size must be replicated in py_scripts/classify_as_Y_chr.py
-- the setting for strictness in py_scripts/classify_as_Y_chr.py can be changed. The optimal strictness found by our testing is half the readlength. Therefore, it is currently set to 75 assuming 150bp Illumina reads. Please modify this according to your needs.
+
+- the setting for strictness in py_scripts/classify_as_Y_chr.py can be changed. The optimal strictness found by our testing is between a third to half the readlength. It is currently set to 50 assuming 150bp Illumina reads. Please modify this according to your needs.
 
 
 
