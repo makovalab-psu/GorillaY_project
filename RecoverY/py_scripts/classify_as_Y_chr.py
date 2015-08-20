@@ -6,13 +6,13 @@ arguments are R1_reference_reads kmer_table_after_threshold R1_postrecY_reads_to
 import sys
 
 # User HAS TO set kmer_size and strictness
-kmer_size = 11 
+kmer_size = 25 
 
 # The higher you set strictness, the more strict it is going to be on autosomes 
-# but you will also lose some Y
-# this is for 250bp reads
+# but you will also lose more Y
+# this is for 150bp reads
 
-strictness = 1
+strictness = 75
 
 
 

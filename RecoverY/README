@@ -22,9 +22,11 @@ EXAMPLE :
 
 To test if RecoverY works on your system, please run the following commands from the GorillaY_project/RecoverY/ folder:
 
-./rundsk.sh example_data/sample_R1.fastq
+tar -xvzf flowsortedY_data.tar.gz
 
-./recoverY_main.sh example_data/sample_R1.fastq example_data/sample_R2.fastq tables/pre_Threshold_reference_table 1
+./rundsk.sh flowsortedY_data/sample_R1.fastq
+
+./recoverY_main.sh flowsortedY_data/sample_R1.fastq flowsortedY_data/sample_R2.fastq tables/pre_Threshold_reference_table 1
 
 
 The first script generates the directory "dsk_output" and populates it with a .h5 and .histo file. Additionally, it creates the directory "tables" which contains the file "pre_Threshold_reference_table". Finally, it generates the k-mer abundance plot "myplot.jpg". 
@@ -56,21 +58,21 @@ Strictness set to 0.5 * length(read) works best in our tests
 
 
 
+THINGS TO NOTE :
+
+- on re-running, these scripts over-write output from previous runs. Please backup your data from previous rundsk and recovery_main runs if needed
+- the setting for k-mer size needs to be consistent across dsk and recoverY. Current default is 25. Any modifications made in the rundsk.sh file to kmer size must be replicated in py_scripts/classify_as_Y_chr.py
+- the setting for strictness in py_scripts/classify_as_Y_chr.py can be changed. The optimal strictness found by our testing is half the readlength. Therefore, it is currently set to 75 assuming 150bp Illumina reads. Please modify this according to your needs.
+
+
+
+
+
 TROUBLESHOOTING : 
 
 error : Insufficient arguments
 
 Typing the name of the bash script provides information on number and order of arguments 
-
-
-
-error : mkdir: cannot create directory `dsk_output': File exists
-	mkdir: cannot create directory `tables': File exists
-
-Remove these directories after backing them up if you need the data
-rm -rf dsk_output
-rm -rf tables
-
 
 
 

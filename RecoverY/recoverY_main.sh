@@ -22,7 +22,10 @@ pre_Threshold_reference_table=$3
 
 Threshold=$4
 
+rm -rf post_RecoverY
 mkdir post_RecoverY
+
+
 
 # -------> START part1 <------
 
