@@ -12,7 +12,7 @@ kmer_size = 25
 # but you will also lose more Y
 # this is for 150bp reads
 
-strictness = 75
+strictness = 50
 
 
 
