@@ -12,9 +12,9 @@ kmer_size = 25
 # but you will also lose more Y
 # this is for 150bp reads
 
-strictness = 50
+#strictness = 75
 
-
+count_exceptions = 0
 
 input_all_types_reads = open(sys.argv[1],'r')
 surely_male_kmers = open(sys.argv[2],'r')
@@ -57,10 +57,13 @@ for line in input_all_types_reads :
 	elif line[0:2] != '@H' and flag == 1 :
 		read_count += 1
 		start_index = 0
-		prospective_matches = 0 
+		revcomp_index = (len(line)-kmer_size-1)
+		prospective_matches = 0
+		line_revcompd = ReverseComplement(line[:-1])
+		
 		while (start_index < (len(line)-kmer_size)) :
 			current_kmer = line[start_index:start_index+kmer_size]
-			revcomp_kmer = ReverseComplement(current_kmer)
+			revcomp_kmer = line_revcompd[revcomp_index:revcomp_index+kmer_size]
 			#print current_kmer
 			#print revcomp_kmer
 			if ((current_kmer in surely_male_kmers_set) or (revcomp_kmer in surely_male_kmers_set)):
@@ -69,8 +72,12 @@ for line in input_all_types_reads :
 				#print current_kmer
 				prospective_matches += 1
 			start_index += 1
-
-		if prospective_matches > strictness :
+			revcomp_index -= 1
+		
+		if len(line) < kmer_size+kmer_size : 
+			count_exceptions += 1
+			
+		if prospective_matches > (int(len(line)/2)) :
 			save_read = line[:-1]
 			flag = 100
 		else :
@@ -79,10 +86,16 @@ for line in input_all_types_reads :
 		save_rest.append(line[:-1])
 	
 	
+print "Exceptions are : ", count_exceptions
 
 #print line_count
 #print record_count
 #print read_count
+
+classified_as_male_reads.write(str(save_readname))
+classified_as_male_reads.write(str(save_read))
+for element in save_rest :
+	classified_as_male_reads.write(str(element)+'\n')
 
 input_all_types_reads.close()
 surely_male_kmers.close()
