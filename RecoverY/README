@@ -64,7 +64,7 @@ THINGS TO NOTE :
 
 - the setting for k-mer size needs to be consistent across dsk and recoverY. Current default is 25. Any modifications made in the rundsk.sh file to kmer size must be replicated in py_scripts/classify_as_Y_chr.py
 
-- the setting for strictness in py_scripts/classify_as_Y_chr.py can be changed. The optimal strictness found by our testing is between a third to half the readlength. It is currently set to 50 assuming 150bp Illumina reads. Please modify this according to your needs.
+- the setting for strictness in py_scripts/classify_as_Y_chr.py can be changed. The optimal strictness found by our testing is between a third to two-thirds of the readlength. It is currently set to 0.5 and we encourage you to modify this according to your needs.
 
 
 
