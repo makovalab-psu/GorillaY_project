@@ -51,7 +51,7 @@ Next, pick a THRESHOLD_VALUE based on the abundance peak of the k-mer plot
 2. Finally, run the main script :
 
 FIRST, set k-mer size and strictness in py_scripts/classify_as_Y_chr.py 
-Strictness is in range (1,length(read))
+Strictness is a fraction of the read length. It is in the range (0,1)
 
 
 ./recoverY_main.sh READS_R1.FASTQ READS_R2.FASTQ PRE_THRESHOLD_REF_TBL THRESHOLD_VALUE
