@@ -8,22 +8,16 @@ from Bio.Alphabet import generic_dna
 import sys
 
 def getAssemblyId(assembly):
-     if ("frozen" in assembly): 
-          return "FRHYB"
-     if ("cleaned" in assembly): 
-          return "CLHYB"
+     if ("final_frozen" in assembly): 
+          return "FINHYB"
      if ("assembly15kb" in assembly): 
           return "U15k"
      if ("assembly11kb" in assembly): 
           return "U11k"
-     if ("assembly9kb" in assembly): 
-          return "U9k"
-     if ("assembly7kb" in assembly): 
-          return "U7k"
      if ("assembly5kb" in assembly): 
           return "U5k"
-     if ("automaticThresholdkb" in assembly): 
-          return "UAT"
+     if ("filt_automaticThresholdkb" in assembly): 
+          return "FUAT"
 
 #python parseSAM.py samfile fastafile
 samF=sys.argv[1]
@@ -89,16 +83,16 @@ for read in samfile:
 
           #print (read.query_alignment_length)
           #print (len(gene_dict[read.query_name.split("/")[0]]))
-          #CHECK!!!!
+
           proportion=float(read.query_alignment_length)/(len(gene_dict[read.query_name.split("/")[0]]))
-          threshold_lower=0.60
-          threshold_upper=1.40
+
+          #thresholds influence which alignments will be reported
+          threshold_lower=0.05 #0.15 #0.60
+          threshold_upper=2 #1.15 #1.40
 
           #print gene_name
           #print read.query_alignment_length
           #print len(gene_dict[read.query_name.split("/")[0]])
-          print proportion
-          #print read.cigarstring
 
           assembly_id=getAssemblyId(samF)
 

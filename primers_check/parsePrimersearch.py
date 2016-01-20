@@ -14,7 +14,7 @@ with open(primers_file, "r") as file:
 	for file_line in file:
 				line=file_line.rstrip()
 				arr=line.split('\t')
-				#print arr
+
 				contig_name=arr[0]
 				F=arr[1]
 				R=arr[2]
@@ -27,12 +27,11 @@ with open(primersearch_file, "r") as file:
 			next_key=""
 			for file_line in file:
 				line=file_line.rstrip()
-				#print line
+
 				if ("Primer name" in line):
 					arr=line.split(" ")
 					key=next_key
 					next_key=arr[2]
-					#print ("key: " + key)
 
 					if (key!=""):
 						amplicons.sort()
@@ -42,13 +41,11 @@ with open(primersearch_file, "r") as file:
 					if ("Amplimer length" in line):
 						arr=line.split(" ")
 						value=int(arr[2])
-						#print ("value: " + value)
 						amplicons.append(value)
 			if line is not None:
 				arr=line.split(" ")
 				key=next_key
 				next_key=arr[2]
-				#print ("key: " + key)
 
 				if (key!=""):
 					amplicons.sort()
@@ -56,7 +53,7 @@ with open(primersearch_file, "r") as file:
 					amplicons=[]
 
 
-#print primers
+#print primers and information about their amplicons
 print ("Contig_name\tsmallest\tlessThan20kbp\tforward\treverse\tnumberOfAmplicons\tfirst_10_values")
 for key in primers_order:
 	values=primers[key]
