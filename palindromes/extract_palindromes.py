@@ -10,6 +10,7 @@ from Bio import SeqIO
 assembly_file=sys.argv[1]
 assembly_name=assembly_file.replace(".fasta","")
 palindrome_output=(assembly_file + "_assemblyNewPalindromes.fasta")
+palindrome_full_output=(assembly_file + "_assemblyNewPalindromesFull.fasta")
 statistics_output=(assembly_file + "_assemblyNewPalindromes_statistics.txt")
 RMfile=palindrome_output+".masked"
 RMparsed="RM_parsed.txt"
@@ -21,12 +22,12 @@ record_dict = SeqIO.to_dict(SeqIO.parse(handle, "fasta"))
 handle.close()
 
 fasta_output = open(palindrome_output,"w")
+fasta_full_output = open(palindrome_full_output,"w")
 stat_output = open(statistics_output,"w")
 
 #BLASR output
 def writeToBlasrFile():
-    command = "blasr -bestn 2 -nproc 60 -m 4 -out BLASRfemale_aligned.txt -unaligned BLASRfemale_unaligned.txt " + palindrome_output + " /galaxy/home/biomonika/data/ref_gorilla/Gorilla_gorilla.gorGor3.1.74.dna.toplevel.fa -sa /galaxy/home/biomonika/data/ref_gorilla/gorGor3.sa"
-    #command = "blasr -bestn 2 -nproc 60 -m 4 " + palindrome_output + " /galaxy/home/biomonika/data/ref_gorilla/Gorilla_gorilla.gorGor3.1.74.dna.toplevel.fa >" + BLASRfemale_aligned.txt
+    command = "blasr -bestn 2 -nproc 60 -m 4 -out BLASRfemale_aligned.txt -unaligned BLASRfemale_unaligned.txt " + palindrome_output + " Gorilla_gorilla.gorGor3.1.74.dna.toplevel.fa -sa gorGor3.sa"
     print command
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=None, shell=True) 
     process.communicate()[0] #Launch shell command
@@ -69,7 +70,7 @@ else:
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=None, shell=True) 
         process.communicate()[0] #Launch shell command
 
-    command="blastn -num_threads 60 -db " + assembly_name + " -query " + query + " -outfmt 7 -dust no -perc_identity 95 -strand plus | awk '{if ($4>=3000) print;}' | sort -gk1 >" + blast_file
+    command="blastn -num_threads 60 -db " + assembly_name + " -query " + query + " -outfmt 7 -dust yes -perc_identity 95 -strand plus | awk '{if ($4>=3000) print;}' | sort -gk1 >" + blast_file
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=None, shell=True) 
     process.communicate()[0] #Launch shell command
 
@@ -162,7 +163,6 @@ def checkIfPalindrome(previous_line,line,scaf_len):
     alignment_length=(previous_line[3]==line[3])
 
     #check if not overlapping on plus strand
-
     overlapping=(getOverlap([previous_line[6],previous_line[7]],[line[6],line[7]])>0)
 
     #check if middle part makes sense
@@ -265,11 +265,14 @@ def getInfoForBlastPair(previous_line,line,identity):
     #print sequences to the file
     seqEntry=str(record_dict[scaf_name].seq)
 
-    fasta_output.write(">F1_" + F1 + "\n" + seqEntry[(first_flanking_start-1):(first_flanking_end)-1] + "\n") # items start through end-1, for example 0:5 means 5 bp from 1st bp
-    fasta_output.write(">A1_" + A1 + "\n" + seqEntry[(prev_start-1):(prev_end-1)] + "\n")
-    fasta_output.write(">S1_" + S1 + "\n" + seqEntry[(prev_end):(start-2)] + "\n")
-    fasta_output.write(">A2_" + A2 + "\n" + seqEntry[(start-1):(end-1)] + "\n")
-    fasta_output.write(">F2_" + F2 + "\n" + seqEntry[(second_flanking_start-1):(second_flanking_end-1)] + "\n")
+    fasta_output.write(">" + F1 + "\n" + seqEntry[(first_flanking_start-1):(first_flanking_end)-1] + "\n") # items start through end-1, for example 0:5 means 5 bp from 1st bp
+    fasta_output.write(">" + A1 + "\n" + seqEntry[(prev_start-1):(prev_end-1)] + "\n")
+    fasta_output.write(">" + S1 + "\n" + seqEntry[(prev_end):(start-2)] + "\n")
+    fasta_output.write(">" + A2 + "\n" + seqEntry[(start-1):(end-1)] + "\n")
+    fasta_output.write(">" + F2 + "\n" + seqEntry[(second_flanking_start-1):(second_flanking_end-1)] + "\n")
+
+    #write palindrome in full
+    fasta_full_output.write(">full_" + scaf_name + ":" + str(min(prev_start,prev_end)) + "-" + str(max(start,end)) + "_spacer:" + str(min(prev_end+1,start-1)) + "-" + str(max(prev_end+1,start-1)) + "\n" + seqEntry[(prev_start-1):(end-1)] + "\n")
 
 previous_scaf1=""
 previous_line=""
@@ -302,6 +305,7 @@ with open(blast_file_parsed, "r") as f:
     print ("\nPALINDROMES FOUND: " + str(palindromes_found) + "\n")
 
 fasta_output.close()
+fasta_full_output.close()
 stat_output.close()
 
 #run Blasr if not ready by now

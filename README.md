@@ -8,4 +8,4 @@ This repository was set up to enhance transparency and reproducibility of our an
 
 ### Who do I talk to? ###
 
-* contact biomonika@psu.edu or any of the repository administrators
+* contact biomonika@psu.edu or szr165@psu.edu or any of the repository administrators
